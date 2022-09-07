@@ -35,7 +35,7 @@ def hash_object(o: Any) -> str:
         return base58.b58encode(m.digest()).decode()
 
 
-def make_beaker_experiment_description(experiment_name) -> str:    
+def make_beaker_experiment_description(experiment_name) -> str:
     return f"Running {experiment_name}."
 
 
@@ -66,6 +66,11 @@ def main():
         default=False,
         help="Allow rollback / use latest already present image.",
     )
+    parser.add_argument(
+        "--parallel-run-count",
+        type=str, help="Number of tasks to run in parallel.",
+        default=None
+    )
     args = parser.parse_args()
 
     experiment_config_jsonnet_path = os.path.join(
@@ -81,9 +86,8 @@ def main():
     command = clean_white_space(experiment_config["command"])
     data_filepaths = experiment_config["data_filepaths"]
     dockerfile_path = experiment_config["dockerfile_path"]
-    beaker_output_directory = experiment_config.get(
-        "beaker_output_directory", "output"
-    ).rstrip("/")
+    local_output_directory = experiment_config["local_output_directory"] # not used here.
+    beaker_output_directory = experiment_config["beaker_output_directory"]
     docker_filepath = experiment_config.pop("docker_filepath", None)
     gpu_count = experiment_config.pop("gpu_count", False)
     cpu_count = experiment_config.pop("cpu_count", None)
@@ -137,22 +141,32 @@ def main():
     wandb_run_name = uuid.uuid4().hex
     env = {"WANDB_RUN_NAME": wandb_run_name}
 
+    task_configs = []
+    for run_index in range(args.parallel_run_count):
+
+        beaker_task_name = beaker_experiment_name
+        if args.parallel_run_count:
+            beaker_task_name += + f"__task_{run_index+1}"
+
+        task_configs.append({
+            "image": {"beaker": beaker_image_id},
+            "result": {"path": results_path.replace("$INDEX", str(run_index))},
+            "arguments": command.replace("$INDEX", str(run_index)).split(" "),
+            "envVars": [
+                {"name": key, "value": value} for key, value in env.items()
+            ],
+            "resources": {"gpuCount": gpu_count},
+            "context": {"cluster": cluster, "priority": "normal"},
+            "datasets": dataset_mounts,
+            "name": beaker_task_name,
+        })
+
+    assert len(set([hash_object(task_config) for task_config in task_configs])) == len(task_configs), \
+        "Looks like some of the task configs are identical. Make sure to use $INDEX correctly."
+
     experiment_config = {
         "description": beaker_experiment_description,
-        "tasks": [
-            {
-                "image": {"beaker": beaker_image_id},
-                "result": {"path": results_path},
-                "arguments": command.split(" "),
-                "envVars": [
-                    {"name": key, "value": value} for key, value in env.items()
-                ],
-                "resources": {"gpuCount": gpu_count},
-                "context": {"cluster": cluster, "priority": "normal"},
-                "datasets": dataset_mounts,
-                "name": beaker_experiment_name,
-            }
-        ],
+        "tasks": task_configs
     }
 
     # Save full config file.
