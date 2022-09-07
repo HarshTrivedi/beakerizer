@@ -1,10 +1,13 @@
 """
 A script to run beaker experiments.
 """
+import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__))))
+
 import json
 import argparse
 import subprocess
-import os
 from typing import List, Dict
 import _jsonnet
 import uuid
@@ -13,7 +16,7 @@ import dill
 import io
 import hashlib
 
-from common import (
+from utils import (
     prepare_beaker_image,
     safe_create_dataset,
     dataset_name_to_id,
@@ -35,7 +38,7 @@ def hash_object(o: Any) -> str:
         return base58.b58encode(m.digest()).decode()
 
 
-def make_beaker_experiment_description(experiment_name) -> str:
+def make_beaker_experiment_description(experiment_name: str) -> str:
     return f"Running {experiment_name}."
 
 

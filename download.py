@@ -1,6 +1,11 @@
-from typing import List
+"""
+A script to download results of beaker experiments.
+"""
 import os
 import sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__))))
+
+from typing import List
 import shutil
 import argparse
 import subprocess
@@ -9,12 +14,10 @@ import _jsonnet
 from glob import glob
 from collections import defaultdict
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__))))
-
 from run import make_beaker_experiment_name
 
 
-def get_experiments_results_dataset_ids(beaker_experiment_name):
+def get_experiments_results_dataset_ids(beaker_experiment_name: str) -> List[str]:
     experiment_details = subprocess.check_output(
         [
             "beaker",
