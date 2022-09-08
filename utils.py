@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 import subprocess
 import os
 import random
@@ -6,6 +6,9 @@ from dateutil import parser
 from datetime import datetime
 import json
 import re
+import base58
+import dill
+import io
 import hashlib
 import math
 
@@ -26,6 +29,16 @@ text2hash = lambda text: str(
 # text2hash helps distinguish between experiments with same title. Beaker experiment names need to be unique.
 
 safe_char_limit = 100
+
+
+def hash_object(o: Any) -> str:
+    # Taken from allennlp
+    """Returns a character hash code of arbitrary Python objects."""
+    m = hashlib.blake2b()
+    with io.BytesIO() as buffer:
+        dill.dump(o, buffer)
+        m.update(buffer.getbuffer())
+        return base58.b58encode(m.digest()).decode()
 
 
 def get_true_randint(start: int, end: int):

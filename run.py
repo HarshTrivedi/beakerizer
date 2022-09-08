@@ -19,27 +19,19 @@ import io
 import hashlib
 
 from utils import (
+    hash_object,
     prepare_beaker_image,
     safe_create_dataset,
     dataset_name_to_id,
     image_name_to_id,
     make_beaker_experiment_name,
     make_beaker_experiment_description,
+    get_experiments_results_dataset_ids,
 )
 
 
 def clean_white_space(text: str) -> str:
     return re.sub(r" +", " ", text).strip()
-
-
-def hash_object(o: Any) -> str:
-    # Taken from allennlp
-    """Returns a character hash code of arbitrary Python objects."""
-    m = hashlib.blake2b()
-    with io.BytesIO() as buffer:
-        dill.dump(o, buffer)
-        m.update(buffer.getbuffer())
-        return base58.b58encode(m.digest()).decode()
 
 
 def main():
