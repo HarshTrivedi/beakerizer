@@ -5,10 +5,11 @@ import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__))))
 
+import re
 import json
 import argparse
 import subprocess
-from typing import List, Dict
+from typing import List, Dict, Any
 import _jsonnet
 import uuid
 import base58
@@ -58,47 +59,49 @@ def main():
         default="v100",
     )
     parser.add_argument(
-        "--dry_run",
+        "--dry-run",
         action="store_true",
         default=False,
         help="If specified, an experiment will not be created.",
     )
     parser.add_argument(
-        "--allow_rollback",
+        "--allow-rollback",
         action="store_true",
         default=False,
         help="Allow rollback / use latest already present image.",
     )
     args = parser.parse_args()
 
-    experiment_config_jsonnet_path = os.path.join(
-        "experiment_configs", "configs", args.experiment_name + ".jsonnet"
+    experiment_config_path = os.path.join(
+        "experiment_configs", args.experiment_name + ".jsonnet"
     )
-    if not os.path.exists(experiment_config_jsonnet_path):
-        exit("Neither jsonnet or json experiment config found.")
+    if not os.path.exists(experiment_config_path):
+        exit("Experiment config found.")
 
     experiment_config = json.loads(
-        _jsonnet.evaluate_file(experiment_config_jsonnet_path)
+        _jsonnet.evaluate_file(experiment_config_path)
     )
 
-    command = clean_white_space(experiment_config["command"])
-    data_filepaths = experiment_config["data_filepaths"]
-    local_output_directory = experiment_config["local_output_directory"] # not used here.
-    beaker_output_directory = experiment_config["beaker_output_directory"]
-    docker_filepath = experiment_config["docker_filepath"]
+    command = clean_white_space(experiment_config.pop("command"))
+    data_filepaths = experiment_config.pop("data_filepaths")
+    local_output_directory = experiment_config.pop("local_output_directory") # not used here.
+    beaker_output_directory = experiment_config.pop("beaker_output_directory")
+    docker_filepath = experiment_config.pop("docker_filepath")
     gpu_count = experiment_config.pop("gpu_count", None)
     cpu_count = experiment_config.pop("cpu_count", None)
     memory = experiment_config.pop("memory", None)
     parallel_run_count = experiment_config.pop("parallel_run_count", None)
     cluster = experiment_config.pop("cluster", args.cluster)
-    assert not experiment_config
+
+    if experiment_config:
+        exit(f"Unused experiment_config: {experiment_config}")
 
     cluster_map = {
         "v100": "ai2/harsh-v100",
         "onperm-aristo": "ai2/aristo-cirrascale",
         "onperm-ai2": "ai2/general-cirrascale",
         "onperm-mosaic": "ai2/mosaic-cirrascale",
-        "cpu": "ai2/harsh-cpu32",
+        "cpu": "ai2/cpu-p10c16g100n",
     }
     cluster = cluster_map[cluster]
 
@@ -124,9 +127,8 @@ def main():
 
     # Prepare Dockerfile
     beaker_image = prepare_beaker_image(
-        dockerfile=docker_filepath,
-        allow_rollback=args.allow_rollback,
-        beaker_image_prefix=hash_prefix,
+        docker_filepath=docker_filepath,
+        allow_rollback=args.allow_rollback
     )
 
     beaker_image_id = image_name_to_id(beaker_image)
@@ -146,7 +148,7 @@ def main():
 
         beaker_task_name = beaker_experiment_name
         if parallel_run_count:
-            beaker_task_name += + f"__task_{run_index+1}"
+            beaker_task_name += f"__task_{run_index+1}"
 
         task_configs.append({
             "image": {"beaker": beaker_image_id},

@@ -243,11 +243,18 @@ def _get_last_git_hash_with_beaker_image(
 
 
 def prepare_beaker_image(
-    dockerfile: str,
+    docker_filepath: str,
     allow_rollback: bool = False,
     use_git_hash: str = None,
-    beaker_image_prefix: str = "",
 ):
+
+    if not os.path.exists(docker_filepath):
+        exit(f"Dockerfile {docker_filepath} not found.")
+
+    with open(docker_filepath, "r") as file:
+        dockerfile_content = file.read().strip()
+
+    beaker_image_prefix = text2hash(dockerfile_content)
 
     beaker_image = None
 
@@ -310,7 +317,7 @@ def prepare_beaker_image(
             print(
                 f"Docker image for latest git-hash {current_git_hash} doesn't exist. Building one."
             )
-            created = create_docker_image(docker_image, dockerfile)
+            created = create_docker_image(docker_image, docker_filepath)
             if not created:
                 exit("Error in creating docker image.")
         created = create_beaker_image(beaker_image, docker_image)
