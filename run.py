@@ -24,7 +24,7 @@ from utils import (
     dataset_name_to_id,
     image_name_to_id,
     make_beaker_experiment_name,
-    make_beaker_experiment_description
+    make_beaker_experiment_description,
 )
 
 

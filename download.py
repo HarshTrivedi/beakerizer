@@ -16,9 +16,7 @@ from glob import glob
 from collections import defaultdict
 
 from run import make_beaker_experiment_name
-from utils import (
-    make_beaker_experiment_name, make_beaker_experiment_name
-)
+from utils import make_beaker_experiment_name, make_beaker_experiment_name
 
 
 def main():
