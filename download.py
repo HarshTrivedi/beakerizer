@@ -45,6 +45,12 @@ def main():
         default=False,
         help="If specified, the download commands will only be printed and not executed.",
     )
+    parser.add_argument(
+        "--download-prefix",
+        default=None,
+        help="If specified, only files with this prefix will be downloaded from the beaker result dataset/s.",
+    )
+
     args = parser.parse_args()
 
     experiment_config_path = os.path.join(
@@ -82,6 +88,9 @@ def main():
         command = [
             "beaker", "dataset", "fetch", "--output", output_directory, dataset_id
         ]
+        if args.download_prefix:
+            command += ["--prefix", args.download_prefix]
+
         print(" ".join(command))
         if not args.dry_run:
             subprocess.run(command)
