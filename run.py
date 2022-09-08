@@ -3,6 +3,7 @@ A script to run beaker experiments.
 """
 import os
 import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__))))
 
 import re
@@ -78,13 +79,13 @@ def main():
     if not os.path.exists(experiment_config_path):
         exit("Experiment config found.")
 
-    experiment_config = json.loads(
-        _jsonnet.evaluate_file(experiment_config_path)
-    )
+    experiment_config = json.loads(_jsonnet.evaluate_file(experiment_config_path))
 
     command = clean_white_space(experiment_config.pop("command"))
     data_filepaths = experiment_config.pop("data_filepaths")
-    local_output_directory = experiment_config.pop("local_output_directory") # not used here.
+    local_output_directory = experiment_config.pop(
+        "local_output_directory"
+    )  # not used here.
     beaker_output_directory = experiment_config.pop("beaker_output_directory")
     docker_filepath = experiment_config.pop("docker_filepath")
     gpu_count = experiment_config.pop("gpu_count", None)
@@ -114,21 +115,61 @@ def main():
 
     dataset_mounts = []
     for data_filepath in data_filepaths:
-        dataset_name = safe_create_dataset(data_filepath)
-        data_file_name = os.path.basename(data_filepath)
-        dataset_id = dataset_name_to_id(dataset_name)
-        dataset_mounts.append(
-            {
-                "source": {"beaker": dataset_id},
-                "subPath": data_file_name,
-                "mountPath": f"{working_dir}/{data_filepath}",
-            }
-        )
+
+        if data_filepath.startswith("result_of_"):
+            # Mount result dataset of a beaker experiment.
+            source_experiment_name = data_filepath.replace("result_of_", "")
+            source_experiment_config_path = os.path.join(
+                "experiment_configs", source_experiment_name + ".jsonnet"
+            )
+            if not os.path.exists(source_experiment_config_path):
+                exit("Source experiment config not found.")
+
+            source_experiment_config = json.loads(
+                _jsonnet.evaluate_file(experiment_config_path)
+            )
+            source_local_output_directory = source_experiment_config[
+                "local_output_directory"
+            ]
+            source_beaker_experiment_name = make_beaker_experiment_name(
+                source_experiment_name
+            )
+            source_result_ids = get_experiments_results_dataset_ids(
+                source_beaker_experiment_name
+            )
+
+            source_local_output_directories = [
+                source_local_output_directory.replace("$INDEX", str(index))
+                for index in range(len(source_result_ids))
+            ]
+
+            for local_output_directory, result_id in zip(
+                source_local_output_directories, source_result_ids
+            ):
+                dataset_mounts.append(
+                    {
+                        "source": {"beaker": result_id},
+                        # "subPath": data_file_name,
+                        "mountPath": f"{working_dir}/{local_output_directory}",
+                    }
+                )
+
+        else:
+            # Mount local dataset filepath.
+            dataset_name = safe_create_dataset(data_filepath)
+            data_file_name = os.path.basename(data_filepath)
+            dataset_id = dataset_name_to_id(dataset_name)
+            dataset_mounts.append(
+                {
+                    "source": {"beaker": dataset_id},
+                    "subPath": data_file_name,
+                    "mountPath": f"{working_dir}/{data_filepath}",
+                }
+            )
 
     # Prepare Dockerfile
     beaker_image = prepare_beaker_image(
-        docker_filepath=docker_filepath,
-        allow_rollback=args.allow_rollback
+        docker_filepath=docker_filepath, allow_rollback=args.allow_rollback
     )
 
     beaker_image_id = image_name_to_id(beaker_image)
@@ -150,25 +191,28 @@ def main():
         if parallel_run_count:
             beaker_task_name += f"__task_{run_index+1}"
 
-        task_configs.append({
-            "image": {"beaker": beaker_image_id},
-            "result": {"path": results_path.replace("$INDEX", str(run_index))},
-            "arguments": command.replace("$INDEX", str(run_index)).split(" "),
-            "envVars": [
-                {"name": key, "value": value} for key, value in env.items()
-            ],
-            "resources": {"gpuCount": gpu_count},
-            "context": {"cluster": cluster, "priority": "normal"},
-            "datasets": dataset_mounts,
-            "name": beaker_task_name,
-        })
+        task_configs.append(
+            {
+                "image": {"beaker": beaker_image_id},
+                "result": {"path": results_path.replace("$INDEX", str(run_index))},
+                "arguments": command.replace("$INDEX", str(run_index)).split(" "),
+                "envVars": [
+                    {"name": key, "value": value} for key, value in env.items()
+                ],
+                "resources": {"gpuCount": gpu_count},
+                "context": {"cluster": cluster, "priority": "normal"},
+                "datasets": dataset_mounts,
+                "name": beaker_task_name,
+            }
+        )
 
-    assert len(set([hash_object(task_config) for task_config in task_configs])) == len(task_configs), \
-        "Looks like some of the task configs are identical. Make sure to use $INDEX correctly."
+    assert len(set([hash_object(task_config) for task_config in task_configs])) == len(
+        task_configs
+    ), "Looks like some of the task configs are identical. Make sure to use $INDEX correctly."
 
     experiment_config = {
         "description": beaker_experiment_description,
-        "tasks": task_configs
+        "tasks": task_configs,
     }
 
     # Save full config file.
