@@ -23,6 +23,8 @@ from utils import (
     safe_create_dataset,
     dataset_name_to_id,
     image_name_to_id,
+    make_beaker_experiment_name,
+    make_beaker_experiment_description
 )
 
 
@@ -38,15 +40,6 @@ def hash_object(o: Any) -> str:
         dill.dump(o, buffer)
         m.update(buffer.getbuffer())
         return base58.b58encode(m.digest()).decode()
-
-
-def make_beaker_experiment_description(experiment_name: str) -> str:
-    return f"Running {experiment_name}."
-
-
-def make_beaker_experiment_name(experiment_name: str) -> str:
-    command_str = experiment_name[:105]
-    return f"{command_str}__{hash_object(experiment_name)[:10]}"
 
 
 def main():

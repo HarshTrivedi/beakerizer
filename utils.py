@@ -380,3 +380,31 @@ def is_experiment_available(experiment_name):
         stderr=subprocess.DEVNULL,
     ).returncode
     return returncode == 0
+
+
+def get_experiments_results_dataset_ids(beaker_experiment_name: str) -> List[str]:
+    experiment_details = subprocess.check_output(
+        [
+            "beaker",
+            "experiment",
+            "inspect",
+            "--format",
+            "json",
+            "harsh-trivedi/" + beaker_experiment_name,
+        ]
+    ).strip()
+    experiment_details = json.loads(experiment_details)
+    results_dataset_ids = [
+        task_obj["execution"]["result"]["beaker"]
+        for task_obj in experiment_details[0]["jobs"]
+    ]
+    return results_dataset_ids
+
+
+def make_beaker_experiment_description(experiment_name: str) -> str:
+    return f"Running {experiment_name}."
+
+
+def make_beaker_experiment_name(experiment_name: str) -> str:
+    command_str = experiment_name[:105]
+    return f"{command_str}__{hash_object(experiment_name)[:10]}"

@@ -16,25 +16,9 @@ from glob import glob
 from collections import defaultdict
 
 from run import make_beaker_experiment_name
-
-
-def get_experiments_results_dataset_ids(beaker_experiment_name: str) -> List[str]:
-    experiment_details = subprocess.check_output(
-        [
-            "beaker",
-            "experiment",
-            "inspect",
-            "--format",
-            "json",
-            "harsh-trivedi/" + beaker_experiment_name,
-        ]
-    ).strip()
-    experiment_details = json.loads(experiment_details)
-    results_dataset_ids = [
-        task_obj["execution"]["result"]["beaker"]
-        for task_obj in experiment_details[0]["jobs"]
-    ]
-    return results_dataset_ids
+from utils import (
+    make_beaker_experiment_name, make_beaker_experiment_name
+)
 
 
 def main():
