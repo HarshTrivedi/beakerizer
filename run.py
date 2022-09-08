@@ -69,11 +69,6 @@ def main():
         default=False,
         help="Allow rollback / use latest already present image.",
     )
-    parser.add_argument(
-        "--parallel-run-count",
-        type=str, help="Number of tasks to run in parallel.",
-        default=None
-    )
     args = parser.parse_args()
 
     experiment_config_jsonnet_path = os.path.join(
@@ -88,13 +83,15 @@ def main():
 
     command = clean_white_space(experiment_config["command"])
     data_filepaths = experiment_config["data_filepaths"]
-    dockerfile_path = experiment_config["dockerfile_path"]
     local_output_directory = experiment_config["local_output_directory"] # not used here.
     beaker_output_directory = experiment_config["beaker_output_directory"]
-    docker_filepath = experiment_config.pop("docker_filepath", None)
-    gpu_count = experiment_config.pop("gpu_count", False)
+    docker_filepath = experiment_config["docker_filepath"]
+    gpu_count = experiment_config.pop("gpu_count", None)
     cpu_count = experiment_config.pop("cpu_count", None)
     memory = experiment_config.pop("memory", None)
+    parallel_run_count = experiment_config.pop("parallel_run_count", None)
+    cluster = experiment_config.pop("cluster", args.cluster)
+    assert not experiment_config
 
     cluster_map = {
         "v100": "ai2/harsh-v100",
@@ -103,7 +100,7 @@ def main():
         "onperm-mosaic": "ai2/mosaic-cirrascale",
         "cpu": "ai2/harsh-cpu32",
     }
-    cluster = cluster_map[args.cluster]
+    cluster = cluster_map[cluster]
 
     CONFIGS_FILEPATH = ".project-beaker-config.json"
     with open(CONFIGS_FILEPATH) as file:
@@ -145,10 +142,10 @@ def main():
     env = {"WANDB_RUN_NAME": wandb_run_name}
 
     task_configs = []
-    for run_index in range(args.parallel_run_count):
+    for run_index in range(parallel_run_count):
 
         beaker_task_name = beaker_experiment_name
-        if args.parallel_run_count:
+        if parallel_run_count:
             beaker_task_name += + f"__task_{run_index+1}"
 
         task_configs.append({
