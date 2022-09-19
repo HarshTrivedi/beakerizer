@@ -78,6 +78,7 @@ def main():
     memory = experiment_config.pop("memory", None)
     parallel_run_count = experiment_config.pop("parallel_run_count", None)
     cluster = experiment_config.pop("cluster", args.cluster)
+    envs = experiment_config.pop("cluster", {})
 
     if experiment_config:
         exit(f"Unused experiment_config: {experiment_config}")
@@ -167,7 +168,7 @@ def main():
     )
 
     wandb_run_name = uuid.uuid4().hex
-    env = {"WANDB_RUN_NAME": wandb_run_name}
+    envs["WANDB_RUN_NAME"] = wandb_run_name
 
     task_configs = []
     for run_index in range(parallel_run_count):
@@ -182,7 +183,7 @@ def main():
                 "result": {"path": results_path.replace("$INDEX", str(run_index))},
                 "arguments": command.replace("$INDEX", str(run_index)).split(" "),
                 "envVars": [
-                    {"name": key, "value": value} for key, value in env.items()
+                    {"name": key, "value": value} for key, value in envs.items()
                 ],
                 "resources": {"gpuCount": gpu_count},
                 "context": {"cluster": cluster, "priority": "normal"},
