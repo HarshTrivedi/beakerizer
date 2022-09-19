@@ -78,7 +78,7 @@ def main():
     memory = experiment_config.pop("memory", None)
     parallel_run_count = experiment_config.pop("parallel_run_count", None)
     cluster = experiment_config.pop("cluster", args.cluster)
-    envs = experiment_config.pop("cluster", {})
+    envs = experiment_config.pop("envs", {})
 
     if experiment_config:
         exit(f"Unused experiment_config: {experiment_config}")
