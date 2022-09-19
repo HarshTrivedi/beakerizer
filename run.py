@@ -135,7 +135,6 @@ def main():
                 dataset_mounts.append(
                     {
                         "source": {"beaker": result_id},
-                        # "subPath": data_file_name,
                         "mountPath": f"{working_dir}/{local_output_directory}",
                     }
                 )
@@ -145,13 +144,14 @@ def main():
             dataset_name = safe_create_dataset(data_filepath)
             data_file_name = os.path.basename(data_filepath)
             dataset_id = dataset_name_to_id(dataset_name)
-            dataset_mounts.append(
-                {
-                    "source": {"beaker": dataset_id},
-                    "subPath": data_file_name,
-                    "mountPath": f"{working_dir}/{data_filepath}",
-                }
-            )
+            dataset_mount = {
+                "source": {"beaker": dataset_id},
+                "mountPath": os.path.join(working_dir, data_filepath),
+            }
+            if os.path.isfile(data_filepath):
+                data_file_name = os.path.basename(data_filepath)
+                dataset_mount["subPath"] = data_file_name
+            dataset_mounts.append(dataset_mount)
 
     # Prepare Dockerfile
     beaker_image = prepare_beaker_image(
