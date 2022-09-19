@@ -59,7 +59,7 @@ def main():
     args = parser.parse_args()
 
     experiment_config_path = os.path.join(
-        "experiment_configs", args.experiment_name + ".jsonnet"
+        "beaker_configs", args.experiment_name + ".jsonnet"
     )
     if not os.path.exists(experiment_config_path):
         exit("Experiment config found.")
@@ -105,7 +105,7 @@ def main():
             # Mount result dataset of a beaker experiment.
             source_experiment_name = data_filepath.replace("result_of_", "")
             source_experiment_config_path = os.path.join(
-                "experiment_configs", source_experiment_name + ".jsonnet"
+                "beaker_configs", source_experiment_name + ".jsonnet"
             )
             if not os.path.exists(source_experiment_config_path):
                 exit("Source experiment config not found.")
