@@ -41,7 +41,10 @@ def main():
     parser.add_argument(
         "--cluster",
         type=str,
-        choices={"v100", "onperm-aristo", "onperm-ai2", "onperm-mosaic", "cpu"},
+        choices={
+            "v100", "onperm-aristo", "onperm-ai2", "onperm-mosaic",
+            "cpu-p10c16g100n", "cpu-np10c32g100n"
+        },
         default="v100",
     )
     parser.add_argument(
@@ -95,7 +98,8 @@ def main():
         "onperm-aristo": "ai2/aristo-cirrascale",
         "onperm-ai2": "ai2/general-cirrascale",
         "onperm-mosaic": "ai2/mosaic-cirrascale",
-        "cpu": "ai2/cpu-p10c16g100n",
+        "cpu-p10c16g100n": "ai2/cpu-p10c16g100n",
+        "cpu-np10c32g100n": "ai2/cpu-p10c32g100n",
     }
     cluster = cluster_map[cluster]
 
