@@ -45,6 +45,12 @@ def main():
         default="v100",
     )
     parser.add_argument(
+        "--priority",
+        type=str,
+        choices={"preemptible", "normal"},
+        default="normal"
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         default=False,
@@ -78,6 +84,7 @@ def main():
     memory = experiment_config.pop("memory", None)
     parallel_run_count = experiment_config.pop("parallel_run_count", None)
     cluster = experiment_config.pop("cluster", args.cluster)
+    priority = experiment_config.pop("priority", args.priority)
     envs = experiment_config.pop("envs", {})
 
     if experiment_config:
@@ -186,7 +193,7 @@ def main():
                     {"name": key, "value": value} for key, value in envs.items()
                 ],
                 "resources": {"gpuCount": gpu_count},
-                "context": {"cluster": cluster, "priority": "normal"},
+                "context": {"cluster": cluster, "priority": args.priority},
                 "datasets": dataset_mounts,
                 "name": beaker_task_name,
             }
