@@ -56,9 +56,7 @@ def main():
 
     if len(results_dataset_ids) > 1:
         if "$INDEX" not in output_directory:
-            print(
-                f"WARNING: Will download all results in the same output_directory: {output_directory}"
-            )
+            exit("The experiment has multiple tasks but there's no $INDEX provided in the local_output_directory.")
         output_directories = [
             output_directory.replace("$INDEX", str(index))
             for index in range(len(results_dataset_ids))
@@ -72,17 +70,15 @@ def main():
     for index, (output_directory, dataset_id) in enumerate(
         zip(output_directories, results_dataset_ids)
     ):
-        sub_output_directory = os.path.join([output_directory, f"subtask_{index}"])
-
         print(
-            f"Downloading results {index+1}/{len(results_dataset_ids)} in {sub_output_directory}"
+            f"Downloading results {index+1}/{len(results_dataset_ids)} in {output_directory}"
         )
         command = [
             "beaker",
             "dataset",
             "fetch",
             "--output",
-            sub_output_directory,
+            output_directory,
             dataset_id,
         ]
         if args.download_prefix:
