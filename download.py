@@ -42,7 +42,7 @@ def main():
     args = parser.parse_args()
 
     experiment_config_path = os.path.join(
-        "experiment_configs", args.experiment_name + ".jsonnet"
+        "beaker_configs", args.experiment_name + ".jsonnet"
     )
     if not os.path.exists(experiment_config_path):
         exit("Experiment config found.")
@@ -72,15 +72,17 @@ def main():
     for index, (output_directory, dataset_id) in enumerate(
         zip(output_directories, results_dataset_ids)
     ):
+        sub_output_directory = os.path.join([output_directory, f"subtask_{index}"])
+
         print(
-            f"Downloading results {index+1}/{len(results_dataset_ids)} in {output_directory}"
+            f"Downloading results {index+1}/{len(results_dataset_ids)} in {sub_output_directory}"
         )
         command = [
             "beaker",
             "dataset",
             "fetch",
             "--output",
-            output_directory,
+            sub_output_directory,
             dataset_id,
         ]
         if args.download_prefix:
