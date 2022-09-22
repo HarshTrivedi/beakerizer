@@ -123,7 +123,7 @@ def main():
                 exit("Source experiment config not found.")
 
             source_experiment_config = json.loads(
-                _jsonnet.evaluate_file(experiment_config_path)
+                _jsonnet.evaluate_file(source_experiment_config_path)
             )
             source_local_output_directory = source_experiment_config[
                 "local_output_directory"
@@ -139,6 +139,8 @@ def main():
                 source_local_output_directory.replace("$INDEX", str(index))
                 for index in range(len(source_result_ids))
             ]
+
+            assert source_experiment_config["parallel_run_count"] == len(set(source_local_output_directories))
 
             for local_output_directory, result_id in zip(
                 source_local_output_directories, source_result_ids
