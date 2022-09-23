@@ -417,7 +417,7 @@ def get_experiments_results_dataset_ids(
     if task_name_regex is not None:
         relevant_jobs = [
             job for job in relevant_jobs
-            bool(re.compile(task_name_regex).match(job["name"]))
+            if bool(re.compile(task_name_regex).match(job["name"]))
         ]
 
     for job in relevant_jobs:
