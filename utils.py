@@ -421,13 +421,17 @@ def get_experiments_results_dataset_ids(beaker_experiment_name: str) -> List[str
             "Found more than one successful result datasets for a job. " \
             "Add code here to pick the last committed one."
 
-    if len(experiment_details[0]["jobs"]) != len(results_dataset_ids):
-        print("WARNING: Not all jobs have finished yet. Skipping the failed ones.")
-
     sorted_names = sorted(list(name_to_result_dataset_ids.keys()))
     results_dataset_ids = [
         name_to_result_dataset_ids[name][0] for name in sorted_names
     ]
+
+    num_jobs = len(set(job["name"] for job in experiment_details[0]["jobs"]))
+    num_results = len(results_dataset_ids)
+
+    if num_results != num_jobs:
+        print("WARNING: Not all jobs have finished yet. Skipping the failed ones.")
+
     return results_dataset_ids
 
 
