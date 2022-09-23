@@ -116,6 +116,12 @@ def main():
         if data_filepath.startswith("result_of_"):
             # Mount result dataset of a beaker experiment.
             source_experiment_name = data_filepath.replace("result_of_", "")
+
+            task_name_regex = None
+            assert source_experiment_name.count("::") in (0, 1)
+            if "::" in source_experiment_name:
+                source_experiment_name, task_name_regex = source_experiment_name.split("::")
+
             source_experiment_config_path = os.path.join(
                 "beaker_configs", source_experiment_name + ".jsonnet"
             )
@@ -132,7 +138,7 @@ def main():
                 source_experiment_name
             )
             source_result_ids = get_experiments_results_dataset_ids(
-                source_beaker_experiment_name
+                source_beaker_experiment_name, task_name_regex
             )
 
             source_local_output_directories = [

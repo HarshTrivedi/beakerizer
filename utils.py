@@ -396,7 +396,10 @@ def is_experiment_available(experiment_name):
     return returncode == 0
 
 
-def get_experiments_results_dataset_ids(beaker_experiment_name: str) -> List[str]:
+def get_experiments_results_dataset_ids(
+        beaker_experiment_name: str,
+        task_name_regex: str = None
+    ) -> List[str]:
     experiment_details = subprocess.check_output(
         [
             "beaker",
@@ -409,7 +412,15 @@ def get_experiments_results_dataset_ids(beaker_experiment_name: str) -> List[str
     ).strip()
     experiment_details = json.loads(experiment_details)
     name_to_result_dataset_ids = defaultdict(list)
-    for job in experiment_details[0]["jobs"]:
+
+    relevant_jobs = experiment_details[0]["jobs"]
+    if task_name_regex is not None:
+        relevant_jobs = [
+            job for job in relevant_jobs
+            bool(re.compile(task_name_regex).match(job["name"]))
+        ]
+
+    for job in relevant_jobs:
         if job["status"]["exitCode"] != 0:
             continue
         name = job["name"]
@@ -426,11 +437,23 @@ def get_experiments_results_dataset_ids(beaker_experiment_name: str) -> List[str
         name_to_result_dataset_ids[name][0] for name in sorted_names
     ]
 
-    num_jobs = len(set(job["name"] for job in experiment_details[0]["jobs"]))
+    num_jobs = len(set(job["name"] for job in relevant_jobs))
     num_results = len(results_dataset_ids)
 
     if num_results != num_jobs:
         print("WARNING: Not all jobs have finished yet. Skipping the failed ones.")
+
+    if task_name_regex is not None and num_results > 1:
+        print(
+            "WARINING: Task regex passed, but it matches multiple job names. "
+            "Returning all of them. If this is not expected, change the regex."
+        )
+
+    if task_name_regex is not None and num_results == 0:
+        print(
+            "WARINING: Task regex passed, but it matches no job names. "
+            "If this is not expected, change the regex."
+        )
 
     return results_dataset_ids
 
