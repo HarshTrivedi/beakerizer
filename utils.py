@@ -4,6 +4,7 @@ import os
 import random
 from dateutil import parser
 from datetime import datetime
+from collections import defaultdict
 import json
 import re
 import base58
@@ -407,9 +408,25 @@ def get_experiments_results_dataset_ids(beaker_experiment_name: str) -> List[str
         ]
     ).strip()
     experiment_details = json.loads(experiment_details)
+    name_to_result_dataset_ids = defaultdict(list)
+    for job in experiment_details[0]["jobs"]:
+        if job["status"]["exitCode"] != 0:
+            continue
+        name = job["name"]
+        result_dataset_id = job["execution"]["result"]["beaker"]
+        name_to_result_dataset_ids[name].append(result_dataset_id)
+
+    for name, result_dataset_ids in name_to_result_dataset_ids.items():
+        assert len(result_dataset_ids) == 1, \
+            "Found more than one successful result datasets for a job. " \
+            "Add code here to pick the last committed one."
+
+    if len(experiment_details[0]["jobs"]) != len(results_dataset_ids):
+        print("WARNING: Not all jobs have finished yet. Skipping the failed ones.")
+
+    sorted_names = sorted(list(name_to_result_dataset_ids.keys()))
     results_dataset_ids = [
-        task_obj["execution"]["result"]["beaker"]
-        for task_obj in experiment_details[0]["jobs"]
+        name_to_result_dataset_ids[name][0] for name in sorted_names
     ]
     return results_dataset_ids
 
