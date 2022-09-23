@@ -14,6 +14,7 @@ import json
 import _jsonnet
 from glob import glob
 from collections import defaultdict
+from jinja2 import Template
 
 from run import make_beaker_experiment_name
 from utils import (
@@ -55,14 +56,15 @@ def main():
     results_dataset_ids = get_experiments_results_dataset_ids(beaker_experiment_name)
 
     if len(results_dataset_ids) > 1:
-        if "$INDEX" not in output_directory:
-            exit("The experiment has multiple tasks but there's no $INDEX provided in the local_output_directory.")
+
+        if "INDEX" not in output_directory:
+            exit("The experiment has multiple tasks but there's no {{INDEX}} provided in the local_output_directory.")
         output_directories = [
-            output_directory.replace("$INDEX", str(index))
+            Template(output_directory).render(INDEX=index)
             for index in range(len(results_dataset_ids))
         ]
     else:
-        assert "$INDEX" not in output_directory
+        assert "INDEX" not in output_directory
         output_directories = [output_directory]
 
     assert len(output_directories) == len(results_dataset_ids)
