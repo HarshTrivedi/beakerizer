@@ -11,13 +11,14 @@ import json
 import argparse
 import subprocess
 from typing import List, Dict, Any
+from collections import defaultdict
 import _jsonnet
 import uuid
 import base58
 import dill
 import io
 import hashlib
-
+from tqdm import tqdm
 from jinja2 import Template
 
 from utils import (
@@ -113,7 +114,7 @@ def main():
     beaker_workspace = configs.pop("beaker_workspace")
 
     common_dataset_mounts = []
-    taskwise_dataset_mounts = {}
+    taskwise_dataset_mounts = defaultdict(list)
     for data_filepath in data_filepaths:
 
         if data_filepath.startswith("result_of_"):
@@ -122,10 +123,10 @@ def main():
             if "INDEX" in data_filepath:
             # Do the substitution and add it in task-wise dataset mount.
 
-                for index in range(parallel_run_count):
+                for index in tqdm(range(parallel_run_count)):
 
                     source_experiment_name = data_filepath.replace("result_of_", "")
-                    source_experiment_name = Template(source_experiment_name).render({"INDEX", index})
+                    source_experiment_name = Template(source_experiment_name).render(INDEX=index)
 
                     task_name_regex = None
                     assert source_experiment_name.count("::") in (0, 1)
@@ -144,10 +145,16 @@ def main():
                     source_local_output_directory = source_experiment_config[
                         "local_output_directory"
                     ]
+                    source_local_output_directory = Template(source_local_output_directory).render(INDEX=index)
                     source_beaker_experiment_name = make_beaker_experiment_name(
                         source_experiment_name
                     )
-
+                    source_result_ids = get_experiments_results_dataset_ids(
+                        source_beaker_experiment_name, task_name_regex
+                    )
+                    assert len(source_result_ids) == 1, \
+                        "Expected single result dataset, but found multiple."
+                    source_result_id = source_result_ids[0]
                     taskwise_dataset_mounts[index].append(
                         {
                             "source": {"beaker": source_result_id},
@@ -159,7 +166,7 @@ def main():
             # Just add the dataset mount in the common list.
 
                 source_experiment_name = data_filepath.replace("result_of_", "")
-                source_experiment_name = Template(source_experiment_name).render({"INDEX", index})
+                source_experiment_name = Template(source_experiment_name).render(INDEX=index)
 
                 task_name_regex = None
                 assert source_experiment_name.count("::") in (0, 1)
@@ -180,7 +187,7 @@ def main():
                 ]
 
                 assert "INDEX" not in source_local_output_directory, \
-                    "Encountered INDEX in source's local output directory. "
+                    "Encountered INDEX in source's local output directory. " \
                     "Currently, it's not possible to map subtasks results datastes to a given INDEX."
 
                 source_beaker_experiment_name = make_beaker_experiment_name(
@@ -204,7 +211,7 @@ def main():
             if "INDEX" in data_filepath:
             # Do the substitution and add it in task-wise dataset mount.
 
-                for index in range(parallel_run_count):
+                for index in tqdm(range(parallel_run_count)):
 
                     data_filepath_ = Template(data_filepath, data={"INDEX", index})
                     dataset_name = safe_create_dataset(data_filepath_)
