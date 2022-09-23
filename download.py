@@ -42,7 +42,7 @@ def main():
     args = parser.parse_args()
 
     experiment_config_path = os.path.join(
-        "experiment_configs", args.experiment_name + ".jsonnet"
+        "beaker_configs", args.experiment_name + ".jsonnet"
     )
     if not os.path.exists(experiment_config_path):
         exit("Experiment config found.")
@@ -56,9 +56,7 @@ def main():
 
     if len(results_dataset_ids) > 1:
         if "$INDEX" not in output_directory:
-            print(
-                f"WARNING: Will download all results in the same output_directory: {output_directory}"
-            )
+            exit("The experiment has multiple tasks but there's no $INDEX provided in the local_output_directory.")
         output_directories = [
             output_directory.replace("$INDEX", str(index))
             for index in range(len(results_dataset_ids))
