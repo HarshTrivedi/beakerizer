@@ -18,6 +18,8 @@ import dill
 import io
 import hashlib
 
+from jinja2 import Template
+
 from utils import (
     hash_object,
     prepare_beaker_image,
@@ -110,67 +112,127 @@ def main():
     working_dir = configs.pop("working_dir")
     beaker_workspace = configs.pop("beaker_workspace")
 
-    dataset_mounts = []
+    common_dataset_mounts = []
+    taskwise_dataset_mounts = {}
     for data_filepath in data_filepaths:
 
         if data_filepath.startswith("result_of_"):
-            # Mount result dataset of a beaker experiment.
-            source_experiment_name = data_filepath.replace("result_of_", "")
+        # Mount result dataset/s of a beaker experiment.
 
-            task_name_regex = None
-            assert source_experiment_name.count("::") in (0, 1)
-            if "::" in source_experiment_name:
-                source_experiment_name, task_name_regex = source_experiment_name.split("::")
+            if "INDEX" in data_filepath:
+            # Do the substitution and add it in task-wise dataset mount.
 
-            source_experiment_config_path = os.path.join(
-                "beaker_configs", source_experiment_name + ".jsonnet"
-            )
-            if not os.path.exists(source_experiment_config_path):
-                exit("Source experiment config not found.")
+                for index in range(parallel_run_count):
 
-            source_experiment_config = json.loads(
-                _jsonnet.evaluate_file(source_experiment_config_path)
-            )
-            source_local_output_directory = source_experiment_config[
-                "local_output_directory"
-            ]
-            source_beaker_experiment_name = make_beaker_experiment_name(
-                source_experiment_name
-            )
-            source_result_ids = get_experiments_results_dataset_ids(
-                source_beaker_experiment_name, task_name_regex
-            )
+                    source_experiment_name = data_filepath.replace("result_of_", "")
+                    source_experiment_name = Template(source_experiment_name).render({"INDEX", index})
 
-            source_local_output_directories = [
-                source_local_output_directory.replace("$INDEX", str(index))
-                for index in range(len(source_result_ids))
-            ]
+                    task_name_regex = None
+                    assert source_experiment_name.count("::") in (0, 1)
+                    if "::" in source_experiment_name:
+                        source_experiment_name, task_name_regex = source_experiment_name.split("::")
 
-            assert source_experiment_config["parallel_run_count"] == len(set(source_local_output_directories))
+                    source_experiment_config_path = os.path.join(
+                        "beaker_configs", source_experiment_name + ".jsonnet"
+                    )
+                    if not os.path.exists(source_experiment_config_path):
+                        exit("Source experiment config not found.")
 
-            for local_output_directory, result_id in zip(
-                source_local_output_directories, source_result_ids
-            ):
-                dataset_mounts.append(
+                    source_experiment_config = json.loads(
+                        _jsonnet.evaluate_file(source_experiment_config_path)
+                    )
+                    source_local_output_directory = source_experiment_config[
+                        "local_output_directory"
+                    ]
+                    source_beaker_experiment_name = make_beaker_experiment_name(
+                        source_experiment_name
+                    )
+
+                    taskwise_dataset_mounts[index].append(
+                        {
+                            "source": {"beaker": source_result_id},
+                            "mountPath": f"{working_dir}/{source_local_output_directory}",
+                        }
+                    )
+
+            else:
+            # Just add the dataset mount in the common list.
+
+                source_experiment_name = data_filepath.replace("result_of_", "")
+                source_experiment_name = Template(source_experiment_name).render({"INDEX", index})
+
+                task_name_regex = None
+                assert source_experiment_name.count("::") in (0, 1)
+                if "::" in source_experiment_name:
+                    source_experiment_name, task_name_regex = source_experiment_name.split("::")
+
+                source_experiment_config_path = os.path.join(
+                    "beaker_configs", source_experiment_name + ".jsonnet"
+                )
+                if not os.path.exists(source_experiment_config_path):
+                    exit("Source experiment config not found.")
+
+                source_experiment_config = json.loads(
+                    _jsonnet.evaluate_file(source_experiment_config_path)
+                )
+                source_local_output_directory = source_experiment_config[
+                    "local_output_directory"
+                ]
+
+                assert "INDEX" not in source_local_output_directory, \
+                    "Encountered INDEX in source's local output directory. "
+                    "Currently, it's not possible to map subtasks results datastes to a given INDEX."
+
+                source_beaker_experiment_name = make_beaker_experiment_name(
+                    source_experiment_name
+                )
+                source_result_ids = get_experiments_results_dataset_ids(
+                    source_beaker_experiment_name, task_name_regex
+                )
+                assert len(source_result_ids) == 1
+                source_result_id = source_result_ids[0]
+                common_dataset_mounts.append(
                     {
-                        "source": {"beaker": result_id},
-                        "mountPath": f"{working_dir}/{local_output_directory}",
+                        "source": {"beaker": source_result_id},
+                        "mountPath": f"{working_dir}/{source_local_output_directory}",
                     }
                 )
 
         else:
-            # Mount local dataset filepath.
-            dataset_name = safe_create_dataset(data_filepath)
-            data_file_name = os.path.basename(data_filepath)
-            dataset_id = dataset_name_to_id(dataset_name)
-            dataset_mount = {
-                "source": {"beaker": dataset_id},
-                "mountPath": os.path.join(working_dir, data_filepath),
-            }
-            if os.path.isfile(data_filepath):
+        # Mount local dataset filepath.
+
+            if "INDEX" in data_filepath:
+            # Do the substitution and add it in task-wise dataset mount.
+
+                for index in range(parallel_run_count):
+
+                    data_filepath_ = Template(data_filepath, data={"INDEX", index})
+                    dataset_name = safe_create_dataset(data_filepath_)
+                    data_file_name = os.path.basename(data_filepath_)
+                    dataset_id = dataset_name_to_id(dataset_name)
+                    dataset_mount = {
+                        "source": {"beaker": dataset_id},
+                        "mountPath": os.path.join(working_dir, data_filepath_),
+                    }
+                    if os.path.isfile(data_filepath_):
+                        data_file_name = os.path.basename(data_filepath_)
+                        dataset_mount["subPath"] = data_file_name
+                    taskwise_dataset_mounts[index].append(dataset_mount)
+
+            else:
+            # Just add the dataset mount in the common list.
+
+                dataset_name = safe_create_dataset(data_filepath)
                 data_file_name = os.path.basename(data_filepath)
-                dataset_mount["subPath"] = data_file_name
-            dataset_mounts.append(dataset_mount)
+                dataset_id = dataset_name_to_id(dataset_name)
+                dataset_mount = {
+                    "source": {"beaker": dataset_id},
+                    "mountPath": os.path.join(working_dir, data_filepath),
+                }
+                if os.path.isfile(data_filepath):
+                    data_file_name = os.path.basename(data_filepath)
+                    dataset_mount["subPath"] = data_file_name
+                common_dataset_mounts.append(dataset_mount)
 
     # Prepare Dockerfile
     beaker_image = prepare_beaker_image(
@@ -194,13 +256,14 @@ def main():
 
         beaker_task_name = beaker_experiment_name
         if parallel_run_count:
-            beaker_task_name += f"__task_{run_index+1}"
+            beaker_task_name += f"__task_{run_index}"
 
+        dataset_mounts = common_dataset_mounts + taskwise_dataset_mounts[run_index]
         task_configs.append(
             {
                 "image": {"beaker": beaker_image_id},
-                "result": {"path": results_path.replace("$INDEX", str(run_index))},
-                "arguments": command.replace("$INDEX", str(run_index)).split(" "),
+                "result": {"path": Template(results_path).render({"INDEX": run_index})},
+                "arguments": Template(command).render({"INDEX": run_index}).split(" "),
                 "envVars": [
                     {"name": key, "value": value} for key, value in envs.items()
                 ],
@@ -213,7 +276,7 @@ def main():
 
     assert len(set([hash_object(task_config) for task_config in task_configs])) == len(
         task_configs
-    ), "Looks like some of the task configs are identical. Make sure to use $INDEX correctly."
+    ), "Looks like some of the task configs are identical. Make sure to use {{INDEX}} correctly."
 
     experiment_config = {
         "description": beaker_experiment_description,
