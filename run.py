@@ -274,7 +274,7 @@ def main():
                 "envVars": [
                     {"name": key, "value": value} for key, value in envs.items()
                 ],
-                "resources": {"gpuCount": gpu_count},
+                "resources": {"gpuCount": gpu_count, "cpuCount": cpu_count, "memory": memory},
                 "context": {"cluster": cluster, "priority": args.priority},
                 "datasets": dataset_mounts,
                 "name": beaker_task_name,
