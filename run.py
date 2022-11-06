@@ -120,7 +120,7 @@ def main():
         if data_filepath.startswith("result_of_"):
         # Mount result dataset/s of a beaker experiment.
 
-            if "INDEX" in data_filepath:
+            if "{{INDEX}}" in data_filepath:
             # Do the substitution and add it in task-wise dataset mount.
 
                 for index in tqdm(range(parallel_run_count)):
@@ -129,9 +129,13 @@ def main():
                     source_experiment_name = Template(source_experiment_name).render(INDEX=index)
 
                     task_name_regex = None
-                    assert source_experiment_name.count("::") in (0, 1)
-                    if "::" in source_experiment_name:
+                    assert source_experiment_name.count("::") in (0, 1, 2)
+                    if source_experiment_name.count("::") == 1:
                         source_experiment_name, task_name_regex = source_experiment_name.split("::")
+                        source_replacements = {"INDEX": index} # assume source and target index are same unless specified (V).
+                    if source_experiment_name.count("::") == 2:
+                        source_experiment_name, task_name_regex, source_replacements = source_experiment_name.split("::")
+                        source_replacements = json.loads(source_replacements)
 
                     source_experiment_config_path = os.path.join(
                         "beaker_configs", source_experiment_name + ".jsonnet"
@@ -145,7 +149,7 @@ def main():
                     source_local_output_directory = source_experiment_config[
                         "local_output_directory"
                     ]
-                    source_local_output_directory = Template(source_local_output_directory).render(INDEX=index)
+                    source_local_output_directory = Template(source_local_output_directory).render(**source_replacements)
                     source_beaker_experiment_name = make_beaker_experiment_name(
                         source_experiment_name
                     )
@@ -169,9 +173,13 @@ def main():
                 source_experiment_name = Template(source_experiment_name).render(INDEX=index)
 
                 task_name_regex = None
-                assert source_experiment_name.count("::") in (0, 1)
-                if "::" in source_experiment_name:
+                assert source_experiment_name.count("::") in (0, 1, 2)
+                if source_experiment_name.count("::") == 1:
                     source_experiment_name, task_name_regex = source_experiment_name.split("::")
+                    source_replacements = {"INDEX": index} # assume source and target index are same unless specified (V).
+                if source_experiment_name.count("::") == 2:
+                    source_experiment_name, task_name_regex, source_replacements = source_experiment_name.split("::")
+                    source_replacements = json.loads(source_replacements)
 
                 source_experiment_config_path = os.path.join(
                     "beaker_configs", source_experiment_name + ".jsonnet"
@@ -185,10 +193,7 @@ def main():
                 source_local_output_directory = source_experiment_config[
                     "local_output_directory"
                 ]
-
-                assert "INDEX" not in source_local_output_directory, \
-                    "Encountered INDEX in source's local output directory. " \
-                    "Currently, it's not possible to map subtasks results datastes to a given INDEX."
+                source_local_output_directory = Template(source_local_output_directory).render(**source_replacements)
 
                 source_beaker_experiment_name = make_beaker_experiment_name(
                     source_experiment_name
@@ -208,7 +213,7 @@ def main():
         else:
         # Mount local dataset filepath.
 
-            if "INDEX" in data_filepath:
+            if "{{INDEX}}" in data_filepath:
             # Do the substitution and add it in task-wise dataset mount.
 
                 for index in tqdm(range(parallel_run_count)):
