@@ -135,7 +135,10 @@ def main():
                         source_replacements = {"INDEX": index} # assume source and target index are same unless specified (V).
                     if source_experiment_name.count("::") == 2:
                         source_experiment_name, task_name_regex, source_replacements = source_experiment_name.split("::")
-                        source_replacements = json.loads(source_replacements)
+                        try:
+                            source_replacements = json.loads(source_replacements)
+                        except:
+                            raise Exception(f"The string '{source_replacements}' cannot be interpreted as json.")
 
                     source_experiment_config_path = os.path.join(
                         "beaker_configs", source_experiment_name + ".jsonnet"
@@ -170,7 +173,6 @@ def main():
             # Just add the dataset mount in the common list.
 
                 source_experiment_name = data_filepath.replace("result_of_", "")
-                source_experiment_name = Template(source_experiment_name).render(INDEX=index)
 
                 task_name_regex = None
                 assert source_experiment_name.count("::") in (0, 1, 2)
@@ -179,7 +181,10 @@ def main():
                     source_replacements = {"INDEX": index} # assume source and target index are same unless specified (V).
                 if source_experiment_name.count("::") == 2:
                     source_experiment_name, task_name_regex, source_replacements = source_experiment_name.split("::")
-                    source_replacements = json.loads(source_replacements)
+                    try:
+                        source_replacements = json.loads(source_replacements)
+                    except:
+                        raise Exception(f"The string '{source_replacements}' cannot be interpreted as json.")
 
                 source_experiment_config_path = os.path.join(
                     "beaker_configs", source_experiment_name + ".jsonnet"
