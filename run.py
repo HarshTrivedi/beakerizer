@@ -280,7 +280,7 @@ def main():
     for run_index in range(parallel_run_count):
 
         beaker_task_name = beaker_experiment_name
-        if parallel_run_count:
+        if parallel_run_count > 1:
             beaker_task_name += f"__task_{run_index}"
 
         dataset_mounts = common_dataset_mounts + taskwise_dataset_mounts[run_index]
