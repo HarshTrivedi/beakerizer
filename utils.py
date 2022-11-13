@@ -424,6 +424,17 @@ def get_experiments_results_dataset_ids(
     name_to_jobs = defaultdict(list)
     for job in relevant_jobs:
         job_name = job["name"]
+        if int(job["status"]["exitCode"]) != 0:
+            result_dataset_id = job["execution"]["result"]["beaker"]
+            output = json.loads(
+                subprocess.check_output(
+                    f"beaker dataset inspect --format json {result_dataset_id}",
+                    shell=True,
+                )
+            )
+            is_result_committed = parser.parse(output[0]["committed"]).year > 2000
+            if not is_result_committed:
+                continue
         name_to_jobs[job_name].append(job)
 
     relevant_jobs = [

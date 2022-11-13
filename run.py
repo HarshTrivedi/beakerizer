@@ -115,7 +115,9 @@ def main():
 
     common_dataset_mounts = []
     taskwise_dataset_mounts = defaultdict(list)
-    for data_filepath in data_filepaths:
+    for data_file_path_index, data_filepath in enumerate(data_filepaths):
+        if len(data_filepaths) > 1:
+            print(f"Building mounts for data_file_path_index: {data_file_path_index} / {len(data_filepaths)}")
 
         if data_filepath.startswith("result_of_"):
         # Mount result dataset/s of a beaker experiment.
