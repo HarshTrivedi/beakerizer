@@ -421,9 +421,19 @@ def get_experiments_results_dataset_ids(
             if bool(re.compile(task_name_regex).match(job["name"]))
         ]
 
+    name_to_jobs = defaultdict(list)
     for job in relevant_jobs:
-        if job["status"]["exitCode"] != 0:
-            continue
+        job_name = job["name"]
+        name_to_jobs[job_name].append(job)
+
+    relevant_jobs = [
+        sorted(_jobs, key=lambda e: parser.parse(e["status"]["finalized"]))[-1]
+        for _, _jobs in name_to_jobs.items()
+    ]
+
+    for job in relevant_jobs:
+        # if job["status"]["exitCode"] != 0: # mount failed experiment as well, it's okay.
+        #     continue
         name = job["name"]
         result_dataset_id = job["execution"]["result"]["beaker"]
         name_to_result_dataset_ids[name].append(result_dataset_id)
