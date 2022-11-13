@@ -432,7 +432,8 @@ def get_experiments_results_dataset_ids(
     ]
 
     for job in relevant_jobs:
-        # if job["status"]["exitCode"] != 0: # mount failed experiment as well, it's okay.
+        # mount failed experiment as well, it's okay as long as it's committed.
+        # if job["status"]["exitCode"] != 0:
         #     continue
         name = job["name"]
         result_dataset_id = job["execution"]["result"]["beaker"]
