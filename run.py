@@ -208,7 +208,13 @@ def main():
                 source_result_ids = get_experiments_results_dataset_ids(
                     source_beaker_experiment_name, task_name_regex
                 )
-                assert len(source_result_ids) == 1
+                assert len(source_result_ids) <= 1
+                if not source_result_ids:
+                    print(
+                        f"WARNING: Not committed result dataset found for"
+                        f"{source_beaker_experiment_name} with regex {task_name_regex}."
+                    )
+                    continue
                 source_result_id = source_result_ids[0]
                 common_dataset_mounts.append(
                     {
