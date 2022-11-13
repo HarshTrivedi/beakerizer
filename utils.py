@@ -461,13 +461,13 @@ def get_experiments_results_dataset_ids(
 
     if task_name_regex is not None and num_results > 1:
         print(
-            "WARINING: Task regex passed, but it matches multiple job names. "
+            "WARINING: Task regex passed, but it matches multiple dataset-committed job names. "
             "Returning all of them. If this is not expected, change the regex."
         )
 
     if task_name_regex is not None and num_results == 0:
         print(
-            "WARINING: Task regex passed, but it matches no job names. "
+            "WARINING: Task regex passed, but it matches no dataset-committed job names. "
             "If this is not expected, change the regex."
         )
 

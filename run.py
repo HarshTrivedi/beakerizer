@@ -211,7 +211,7 @@ def main():
                 assert len(source_result_ids) <= 1
                 if not source_result_ids:
                     print(
-                        f"WARNING: Not committed result dataset found for"
+                        f"WARNING: No committed result dataset found for "
                         f"{source_beaker_experiment_name} with regex {task_name_regex}."
                     )
                     continue
