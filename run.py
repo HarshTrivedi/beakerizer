@@ -184,6 +184,12 @@ def main():
 
                 source_experiment_name = data_filepath.replace("result_of_", "")
 
+                overridden_output_directory = None
+                if "->" in source_experiment_name:
+                    data_filepath, overridden_output_directory = data_filepath.split("->")
+                    data_filepath = data_filepath.strip()
+                    overridden_output_directory = overridden_output_directory.strip()
+
                 task_name_regex = None
                 source_replacements = {}
                 assert source_experiment_name.count("::") in (0, 1, 2)
@@ -209,6 +215,8 @@ def main():
                 source_local_output_directory = source_experiment_config[
                     "local_output_directory"
                 ]
+                if overridden_output_directory is not None:
+                    source_local_output_directory = overridden_output_directory
                 source_local_output_directory = Template(source_local_output_directory).render(**source_replacements)
 
                 source_beaker_experiment_name = make_beaker_experiment_name(
@@ -256,16 +264,25 @@ def main():
             else:
             # Just add the dataset mount in the common list.
 
+                overridden_output_filepath = None
+                if "->" in data_filepath:
+                    data_filepath, overridden_output_filepath = data_filepath.split("->")
+                    data_filepath = data_filepath.strip()
+                    overridden_output_filepath = overridden_output_filepath.strip()
+
                 dataset_name = safe_create_dataset(data_filepath)
-                data_file_name = os.path.basename(data_filepath)
                 dataset_id = dataset_name_to_id(dataset_name)
+
+                output_filepath = (
+                    overridden_output_filepath if overridden_output_filepath is not None else data_filepath
+                )
                 dataset_mount = {
                     "source": {"beaker": dataset_id},
-                    "mountPath": os.path.join(working_dir, data_filepath),
+                    "mountPath": os.path.join(working_dir, output_filepath),
                 }
                 if os.path.isfile(data_filepath):
-                    data_file_name = os.path.basename(data_filepath)
-                    dataset_mount["subPath"] = data_file_name
+                    output_file_name = os.path.basename(output_filepath)
+                    dataset_mount["subPath"] = output_file_name
                 common_dataset_mounts.append(dataset_mount)
 
     # Prepare Dockerfile
