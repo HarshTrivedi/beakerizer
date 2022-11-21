@@ -276,7 +276,7 @@ def main():
     if args.debug_docker:
         docker_image = beaker_to_docker_image(beaker_image)
         command = f"docker run -it {docker_image} /bin/bash"
-        subprocess.run(command)
+        subprocess.run(command.split())
         exit()
 
     beaker_image_id = image_name_to_id(beaker_image)
@@ -348,7 +348,7 @@ def main():
 
     # Run beaker command if required.
     if not args.dry_run:
-        subprocess.run(experiment_run_command, shell=True)
+        subprocess.run(experiment_run_command)
 
 
 if __name__ == "__main__":
