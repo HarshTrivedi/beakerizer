@@ -276,7 +276,7 @@ def main():
     if args.debug_docker:
         docker_image = beaker_to_docker_image(beaker_image)
         command = f"docker run -it {docker_image} /bin/bash"
-        subprocess.run(command.split(), shell=True)
+        subprocess.run(command)
         exit()
 
     beaker_image_id = image_name_to_id(beaker_image)
