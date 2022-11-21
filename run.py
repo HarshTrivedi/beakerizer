@@ -131,6 +131,7 @@ def main():
                     source_experiment_name = Template(source_experiment_name).render(INDEX=index)
 
                     task_name_regex = None
+                    source_replacements = {}
                     assert source_experiment_name.count("::") in (0, 1, 2)
                     if source_experiment_name.count("::") == 1:
                         source_experiment_name, task_name_regex = source_experiment_name.split("::")
@@ -177,6 +178,7 @@ def main():
                 source_experiment_name = data_filepath.replace("result_of_", "")
 
                 task_name_regex = None
+                source_replacements = {}
                 assert source_experiment_name.count("::") in (0, 1, 2)
                 if source_experiment_name.count("::") == 1:
                     source_experiment_name, task_name_regex = source_experiment_name.split("::")
