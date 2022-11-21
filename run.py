@@ -27,6 +27,7 @@ from utils import (
     safe_create_dataset,
     dataset_name_to_id,
     image_name_to_id,
+    beaker_to_docker_image,
     make_beaker_experiment_name,
     make_beaker_experiment_description,
     get_experiments_results_dataset_ids,
@@ -61,6 +62,12 @@ def main():
         action="store_true",
         default=False,
         help="If specified, an experiment will not be created.",
+    )
+    parser.add_argument(
+        "--debug-docker",
+        action="store_true",
+        default=False,
+        help="Run the docker image in interactive mode.",
     )
     parser.add_argument(
         "--allow-rollback",
@@ -266,6 +273,12 @@ def main():
         docker_filepath=docker_filepath, allow_rollback=args.allow_rollback
     )
 
+    if args.debug_docker:
+        docker_image = beaker_to_docker_image(beaker_image)
+        command = f"docker run -it {docker_image} /bin/bash"
+        subprocess.run(command.split(), shell=True)
+        exit()
+
     beaker_image_id = image_name_to_id(beaker_image)
     results_path = os.path.join(working_dir, beaker_output_directory)
 
@@ -335,7 +348,7 @@ def main():
 
     # Run beaker command if required.
     if not args.dry_run:
-        subprocess.run(experiment_run_command)
+        subprocess.run(experiment_run_command, shell=True)
 
 
 if __name__ == "__main__":
