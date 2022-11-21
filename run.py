@@ -132,6 +132,9 @@ def main():
             if "{{INDEX}}" in data_filepath:
             # Do the substitution and add it in task-wise dataset mount.
 
+                assert "->" not in data_filepath, \
+                    "overriding output path is not implemented in this choice yet."
+
                 for index in tqdm(range(parallel_run_count)):
 
                     source_experiment_name = data_filepath.replace("result_of_", "")
@@ -245,6 +248,9 @@ def main():
 
             if "{{INDEX}}" in data_filepath:
             # Do the substitution and add it in task-wise dataset mount.
+
+                assert "->" not in data_filepath, \
+                    "overriding output path is not implemented in this choice yet."
 
                 for index in tqdm(range(parallel_run_count)):
 
