@@ -188,10 +188,11 @@ def main():
                 source_experiment_name = data_filepath.replace("result_of_", "")
 
                 overridden_output_directory = None
-                if "->" in source_experiment_name:
+                if "->" in data_filepath:
                     data_filepath, overridden_output_directory = data_filepath.split("->")
                     data_filepath = data_filepath.strip()
                     overridden_output_directory = overridden_output_directory.strip()
+                    source_experiment_name = source_experiment_name.split("->")[0]
 
                 task_name_regex = None
                 source_replacements = {}
