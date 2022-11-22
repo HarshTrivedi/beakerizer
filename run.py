@@ -157,7 +157,7 @@ def main():
                         "beaker_configs", source_experiment_name + ".jsonnet"
                     )
                     if not os.path.exists(source_experiment_config_path):
-                        exit("Source experiment config not found.")
+                        exit(f"Source experiment config ({source_experiment_config_path}) not found.")
 
                     source_experiment_config = json.loads(
                         _jsonnet.evaluate_file(source_experiment_config_path)
@@ -210,7 +210,7 @@ def main():
                     "beaker_configs", source_experiment_name + ".jsonnet"
                 )
                 if not os.path.exists(source_experiment_config_path):
-                    exit("Source experiment config not found.")
+                    exit(f"Source experiment config ({source_experiment_config_path}) not found.")
 
                 source_experiment_config = json.loads(
                     _jsonnet.evaluate_file(source_experiment_config_path)
