@@ -110,6 +110,7 @@ def main():
         "onperm-mosaic": "ai2/mosaic-cirrascale",
         "cpu-p10c16g100n": "ai2/cpu-p10c16g100n",
         "cpu-np10c32g100n": "ai2/cpu-np10c32g100n",
+        "cpu-p10c16g200n": "ai2/cpu-p10c16g200n",
     }
     cluster = cluster_map[cluster]
 
