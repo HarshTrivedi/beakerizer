@@ -332,7 +332,8 @@ def main():
                     {"name": key, "value": value} for key, value in envs.items()
                 ],
                 "resources": {"gpuCount": gpu_count, "cpuCount": cpu_count, "memory": memory},
-                "context": {"cluster": cluster, "priority": priority},
+                "context": {"priority": priority},
+                "constraints": {"cluster": cluster},
                 "datasets": dataset_mounts,
                 "name": beaker_task_name,
             }
