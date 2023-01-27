@@ -10,14 +10,9 @@ import re
 import json
 import argparse
 import subprocess
-from typing import List, Dict, Any
 from collections import defaultdict
 import _jsonnet
 import uuid
-import base58
-import dill
-import io
-import hashlib
 from tqdm import tqdm
 from jinja2 import Template
 
@@ -36,6 +31,21 @@ from utils import (
 
 def clean_white_space(text: str) -> str:
     return re.sub(r" +", " ", text).strip()
+
+
+CLUSTER_NAME_TO_ADDRESSES = {
+    "cpu-p10c16g100n": ["ai2/cpu-p10c16g100n"],
+    "cpu-np10c32g100n": ["ai2/cpu-np10c32g100n"],
+    "cpu-p10c16g200n": ["ai2/cpu-p10c16g200n"],
+    "v100": ["ai2/harsh-v100"],
+    "p100": ["us_wvnghctl47k0/01DWJFVFKH47FBPV3E77V27P44"],
+    "general": ["ai2/general-cirrascale"],
+    "aristo": ["ai2/aristo-cirrascale"],
+    "allennlp": ["ai2/allennlp-cirrascale"],
+    "mosaic": ["ai2/mosaic-cirrascale"],
+    "s2": ["ai2/s2-cirrascale"],
+    "safe_a1000s": ["ai2/general-cirrascale", "ai2/aristo-cirrascale"],
+}
 
 
 def main():
@@ -103,16 +113,7 @@ def main():
     if experiment_config:
         exit(f"Unused experiment_config: {experiment_config}")
 
-    cluster_map = {
-        "v100": "ai2/harsh-v100",
-        "onperm-aristo": "ai2/aristo-cirrascale",
-        "onperm-ai2": "ai2/general-cirrascale",
-        "onperm-mosaic": "ai2/mosaic-cirrascale",
-        "cpu-p10c16g100n": "ai2/cpu-p10c16g100n",
-        "cpu-np10c32g100n": "ai2/cpu-np10c32g100n",
-        "cpu-p10c16g200n": "ai2/cpu-p10c16g200n",
-    }
-    cluster = cluster_map[cluster]
+    cluster = CLUSTER_NAME_TO_ADDRESSES[args.cluster]
 
     CONFIGS_FILEPATH = ".project-beaker-config.json"
     with open(CONFIGS_FILEPATH) as file:
@@ -333,7 +334,7 @@ def main():
                     {"name": key, "value": value} for key, value in envs.items()
                 ],
                 "resources": {"gpuCount": gpu_count, "cpuCount": cpu_count, "memory": memory},
-                "context": {"cluster": cluster, "priority": args.priority},
+                "context": {"cluster": cluster, "priority": priority},
                 "datasets": dataset_mounts,
                 "name": beaker_task_name,
             }
