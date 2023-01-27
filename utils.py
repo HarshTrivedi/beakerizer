@@ -125,7 +125,9 @@ def safe_create_dataset(dataset_path: str):
         stderr=subprocess.DEVNULL,
     ).returncode
     if unavailable:
-        create_dataset(dataset_name, dataset_path)
+        created = create_dataset(dataset_name, dataset_path)
+        if not created:
+            raise Exception(f"The dataset {dataset_name} at {dataset_path} couldn't be created.")
     else:
 
         def get_file_or_dir_mtime_ts(path: str):
@@ -155,6 +157,7 @@ def safe_create_dataset(dataset_path: str):
             # Need to delete (rename) beaker_dataset and create a new one.
             remove_dataset(dataset_name)
             create_dataset(dataset_name, dataset_path)
+
     return dataset_name
 
 
