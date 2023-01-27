@@ -55,11 +55,8 @@ def main():
     parser.add_argument(
         "--cluster",
         type=str,
-        choices={
-            "v100", "onperm-aristo", "onperm-ai2", "onperm-mosaic",
-            "cpu-p10c16g100n", "cpu-np10c32g100n"
-        },
-        default="v100",
+        choices=CLUSTER_NAME_TO_ADDRESSES.keys(),
+        default="safe_a1000s",
     )
     parser.add_argument(
         "--priority",
