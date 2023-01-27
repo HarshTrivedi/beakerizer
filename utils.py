@@ -345,7 +345,7 @@ def prepare_beaker_image(
 def beaker_name_for_experiment(command: str, experiment_name: str, dataset_filepath: str = ""):
     assert command in ("train", "evaluate", "predict")
     dataset_filepath = dataset_filepath.strip()
-    assert command in ("evaluate", "predict") == bool(dataset_filepath), \
+    assert (command in ("evaluate", "predict")) == bool(dataset_filepath), \
         "The beaker name can be obtained for train with dataset_filepath and for evaluate/prediction without."
     full_identifier = text2hash(experiment_name + dataset_filepath)
     if "__" not in experiment_name:
