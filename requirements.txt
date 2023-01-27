@@ -2,3 +2,5 @@ jinja2
 jsonnet
 dill
 tqdm
+base58
+dill
