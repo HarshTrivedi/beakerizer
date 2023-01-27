@@ -316,6 +316,7 @@ def main():
 
     wandb_run_name = uuid.uuid4().hex
     envs["WANDB_RUN_NAME"] = wandb_run_name
+    envs["IS_ON_BEAKER"] = True
 
     task_configs = []
     for run_index in range(parallel_run_count):

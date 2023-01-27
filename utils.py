@@ -342,34 +342,18 @@ def prepare_beaker_image(
     return beaker_image
 
 
-def beaker_name_for_training_experiment(experiment_name: str):
-    full_identifier = text2hash(experiment_name)
-    # if "__" not in experiment_name:
-    #     print(f"Warning: No title found in the experiment_name, {experiment_name}.")
-    title = experiment_name.split("__")[0]
-    if len(title) > 100:
-        print("Warning: Experiment name can't more than 115 characters.")
-    return f"train__{title[:100]}__{full_identifier}"
-
-
-def beaker_name_for_evaluation_experiment(experiment_name: str, dataset_filepath: str):
+def beaker_name_for_experiment(command: str, experiment_name: str, dataset_filepath: str = ""):
+    assert command in ("train", "evaluate", "predict")
+    dataset_filepath = dataset_filepath.strip()
+    assert command in ("evaluate", "predict") == bool(dataset_filepath), \
+        "The beaker name can be obtained for train with dataset_filepath and for evaluate/prediction without."
     full_identifier = text2hash(experiment_name + dataset_filepath)
     if "__" not in experiment_name:
         print(f"Warning: No title found in the experiment_name, {experiment_name}.")
     title = experiment_name.split("__")[0]
     if len(title) > 100:
         print("Warning: Experiment name can't more than 115 characters.")
-    return f"evalulate__{title[:100]}__{full_identifier}"
-
-
-def beaker_name_for_prediction_experiment(experiment_name: str, dataset_filepath: str):
-    full_identifier = text2hash(experiment_name + dataset_filepath)
-    if "__" not in experiment_name:
-        print(f"Warning: No title found in the experiment_name, {experiment_name}.")
-    title = experiment_name.split("__")[0]
-    if len(title) > 100:
-        print("Warning: Experiment name can't more than 115 characters.")
-    return f"predict__{title[:100]}__{full_identifier}"
+    return f"{command}__{title[:100]}__{full_identifier}"
 
 
 def get_experiments_result_dataset_id(beaker_experiment_name):
