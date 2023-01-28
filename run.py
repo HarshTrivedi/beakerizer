@@ -311,9 +311,11 @@ def main():
         args.experiment_name
     )
 
-    wandb_run_name = uuid.uuid4().hex
-    envs["WANDB_RUN_NAME"] = wandb_run_name
-    envs["IS_ON_BEAKER"] = True
+    if "WANDB_RUN_NAME" not in envs:
+        wandb_run_name = uuid.uuid4().hex
+        envs["WANDB_RUN_NAME"] = wandb_run_name
+    if "IS_ON_BEAKER" not in envs:
+        envs["IS_ON_BEAKER"] = "true"
 
     task_configs = []
     for run_index in range(parallel_run_count):
