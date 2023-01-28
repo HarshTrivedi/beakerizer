@@ -479,7 +479,7 @@ def make_beaker_experiment_description(experiment_name: str) -> str:
 
 
 def make_beaker_experiment_name(experiment_name: str) -> str:
-    if len(experiment_name) > 115:
+    if len(experiment_name) < 115:
         # NOTE: This condition has been add after I started natcq HF exps.
         return experiment_name
     return f"{experiment_name[:100]}__{hash_object(experiment_name)[:10]}"
