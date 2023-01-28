@@ -356,9 +356,10 @@ def beaker_name_for_experiment(command: str, experiment_name: str, dataset_filep
     title = experiment_name.split("__")[0]
     if len(title) > 100:
         print("Warning: Experiment name can't more than 115 characters, so shortening it.")
-        return f"{command}__{title[:100]}__{full_identifier}"
+        experiment_name = f"{command}__{title[:100]}__{full_identifier}"
     else:
-        return f"{command}__{title}"
+        experiment_name = f"{command}__{title}"
+    return experiment_name
 
 
 def get_experiments_result_dataset_id(beaker_experiment_name):
