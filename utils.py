@@ -364,8 +364,8 @@ def beaker_name_for_experiment(command: str, experiment_name: str, dataset_filep
     assert (command in ("evaluate", "predict")) == bool(dataset_filepath), \
         "The beaker name can be obtained for train with dataset_filepath and for evaluate/prediction without."
     full_identifier = text2hash(experiment_name + dataset_filepath)
-    if "__" not in experiment_name:
-        print(f"Warning: No title found in the experiment_name, {experiment_name}.")
+    # if "__" not in experiment_name:
+    #     print(f"Warning: No title found in the experiment_name, {experiment_name}.")
     title = experiment_name.split("__")[0]
     if len(title) > 100:
         print("Warning: Experiment name can't more than 115 characters, so shortening it.")
