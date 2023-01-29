@@ -112,18 +112,16 @@ def image_name_to_id(image_name):
     return output[0]["id"]
 
 
-def image_name_to_url(image_name):
+def experiment_name_to_url(experiment_name):
     try:
         output = json.loads(
             subprocess.check_output(
-                f"beaker image inspect --format json {user_name}/{image_name}",
-                shell=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                f"beaker experiment inspect --format json {user_name}/{experiment_name}",
+                shell=True, stderr=subprocess.DEVNULL,
             )
         )
         experiment_id = output[0]["id"]
-        beaker_url = f"https://beaker.org/ex/{experiment_id}/"
+        beaker_url = f"https://beaker.org/ex/{experiment_id}"
         return beaker_url
     except:
         return None
