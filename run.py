@@ -7,6 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__))))
 
 import re
+import random
 import json
 import argparse
 import subprocess
@@ -111,6 +112,7 @@ def main():
         exit(f"Unused experiment_config: {experiment_config}")
 
     cluster = CLUSTER_NAME_TO_ADDRESSES[args.cluster]
+    random.shuffle(cluster) # to assure one cluster isn't preferred over the other consistently.
 
     CONFIGS_FILEPATH = ".project-beaker-config.json"
     with open(CONFIGS_FILEPATH) as file:
