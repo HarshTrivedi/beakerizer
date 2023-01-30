@@ -111,7 +111,7 @@ def main():
     if experiment_config:
         exit(f"Unused experiment_config: {experiment_config}")
 
-    cluster = CLUSTER_NAME_TO_ADDRESSES[args.cluster]
+    cluster = CLUSTER_NAME_TO_ADDRESSES[cluster]
     random.shuffle(cluster) # to assure one cluster isn't preferred over the other consistently.
 
     CONFIGS_FILEPATH = ".project-beaker-config.json"
