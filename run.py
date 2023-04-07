@@ -357,6 +357,7 @@ def main():
     beaker_experiment_config_path = (
         f".beaker_experiment_specs/{experiment_hash_id}.json"
     )
+    os.makedirs(".beaker_experiment_specs", exist_ok=True)
     with open(beaker_experiment_config_path, "w") as output:
         output.write(json.dumps(experiment_config, indent=4))
     print(f"Beaker spec written to {beaker_experiment_config_path}.")
