@@ -46,7 +46,8 @@ CLUSTER_NAME_TO_ADDRESSES = {
     "mosaic": ["ai2/mosaic-cirrascale"],
     "s2": ["ai2/s2-cirrascale"],
     "safe_a1000s": ["ai2/general-cirrascale", "ai2/aristo-cirrascale"],
-    "general-a100": ["ai2/general-cirrascale-a100-80g-ib"]
+    "general-a100": ["ai2/general-cirrascale-a100-80g-ib"],
+    "mosaic-rtx8k": ["ai2/mosaic-elanding-rtx8000"],
 }
 
 
