@@ -127,6 +127,34 @@ def experiment_name_to_url(experiment_name):
         return None
 
 
+def experiment_url_to_id(experiment_url):
+    prefix = "https://beaker.org/ex/"
+    if prefix not in experiment_url:
+        raise Exception(
+            f"Can't infer ID from the experiment_url {experiment_url} as it doesn't start with {prefix}"
+        )
+    remaining_part = experiment_url.replace(prefix, "")
+    beaker_id = remaining_part.split("/")[0]
+    return beaker_id
+
+
+def experiment_url_to_name(experiment_url):
+    experiment_id = experiment_url_to_id(experiment_url)
+    if not experiment_id:
+        return None
+    try:
+        output = json.loads(
+            subprocess.check_output(
+                f"beaker experiment inspect --format json {experiment_id}",
+                shell=True, stderr=subprocess.DEVNULL,
+            )
+        )
+        experiment_name = output[0]["name"]
+        return experiment_name
+    except:
+        return None
+
+
 def safe_create_dataset(dataset_path: str):
     if not os.path.exists(dataset_path):
         exit(f"{dataset_path} doesn't exist.")
