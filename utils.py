@@ -138,10 +138,7 @@ def experiment_url_to_id(experiment_url):
     return beaker_id
 
 
-def experiment_url_to_name(experiment_url):
-    experiment_id = experiment_url_to_id(experiment_url)
-    if not experiment_id:
-        return None
+def experiment_id_to_config(experiment_id):
     try:
         output = json.loads(
             subprocess.check_output(
@@ -149,10 +146,34 @@ def experiment_url_to_name(experiment_url):
                 shell=True, stderr=subprocess.DEVNULL,
             )
         )
-        experiment_name = output[0]["name"]
-        return experiment_name
+        return output
     except:
         return None
+
+
+def experiment_config_to_name(experiment_config):
+    if not experiment_config:
+        return None
+    return experiment_config[0]["name"]
+
+
+def experiment_config_to_name(experiment_config):
+    if not experiment_config:
+        return None
+    return experiment_config[0]["name"]
+
+
+def experiment_url_to_config(experiment_url):
+    experiment_id = experiment_url_to_id(experiment_url)
+    experiment_config = experiment_id_to_config(experiment_id)
+    return experiment_config
+
+
+def experiment_url_to_name(experiment_url):
+    experiment_id = experiment_url_to_id(experiment_url)
+    experiment_config = experiment_id_to_config(experiment_id)
+    experiment_name = experiment_config_to_name(experiment_config)
+    return experiment_name
 
 
 def safe_create_dataset(dataset_path: str):
