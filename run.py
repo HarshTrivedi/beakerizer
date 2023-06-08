@@ -247,6 +247,18 @@ def main():
                     }
                 )
 
+        elif data_filepath.startswith("host_path:"):
+
+            data_filepath = data_filepath.split(":", 1)[1]
+            if "{{INDEX}}" in data_filepath:
+                raise Exception("automatic index substitution is not supported for host_path.")
+            else:
+                dataset_mount = {
+                    "source": {"hostPath": data_filepath},
+                    "mountPath": data_filepath,
+                } # TODO: Might need subPath, revisit if so.
+                common_dataset_mounts.append(dataset_mount)
+
         else:
         # Mount local dataset filepath.
 
