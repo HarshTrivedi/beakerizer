@@ -35,6 +35,7 @@ def clean_white_space(text: str) -> str:
 
 
 CLUSTER_NAME_TO_ADDRESSES = {
+    "cpu-10c16g200n": ["ai2/cpu-10c16g200n"],
     "cpu-p10c16g100n": ["ai2/cpu-p10c16g100n"],
     "cpu-np10c32g100n": ["ai2/cpu-np10c32g100n"],
     "cpu-p10c16g200n": ["ai2/cpu-p10c16g200n"],
