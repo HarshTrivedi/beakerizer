@@ -38,6 +38,7 @@ CLUSTER_NAME_TO_ADDRESSES = {
     "cpu-10c16g200n": ["ai2/cpu-10c16g200n"],
     "cpu-p10c16g100n": ["ai2/cpu-p10c16g100n"],
     "cpu-np10c32g100n": ["ai2/cpu-np10c32g100n"],
+    "cpu-p10c32g200n": ["ai2/cpu-p10c32g200n"],
     "cpu-p10c16g200n": ["ai2/cpu-p10c16g200n"],
     "v100": ["ai2/harsh-v100"],
     "p100": ["us_wvnghctl47k0/01DWJFVFKH47FBPV3E77V27P44"],
