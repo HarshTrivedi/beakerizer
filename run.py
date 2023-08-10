@@ -44,6 +44,7 @@ CLUSTER_NAME_TO_ADDRESSES = {
     "p100": ["us_wvnghctl47k0/01DWJFVFKH47FBPV3E77V27P44"],
     "general": ["ai2/general-cirrascale"],
     "aristo": ["ai2/aristo-cirrascale"],
+    "aristo-elanding": ["ai2/aristo-elanding-a6000"],
     "allennlp": ["ai2/allennlp-cirrascale"],
     "mosaic": ["ai2/mosaic-cirrascale"],
     "s2": ["ai2/s2-cirrascale"],
