@@ -449,6 +449,17 @@ def fetch_beaker_dataset_to(dataset_id, target_path, prefix=None):
     print(f"Pulled at: {target_path}")
 
 
+def ls_beaker_dataset(dataset_id, prefix=None):
+    if prefix:
+        command = ["beaker", "dataset", "ls", dataset_id, prefix, "--format", "json"]
+    else:
+        command = ["beaker", "dataset", "ls", dataset_id, "--format", "json"]
+    ls_output_json = subprocess.check_output(command).strip()
+    ls_output_json = json.loads(ls_output_json)
+    paths = [item["path"] for item in ls_output_json]
+    return paths
+
+
 def is_experiment_available(experiment_name):
     returncode = subprocess.run(
         f"beaker experiment inspect {user_name}/{experiment_name}",
